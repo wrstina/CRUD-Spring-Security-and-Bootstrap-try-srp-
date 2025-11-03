@@ -38,5 +38,4 @@ public class UserCreateDto { // нет бизнес-логики: только �
         this.age = age;
         this.roleIds = roleIds;
     }
-
 }

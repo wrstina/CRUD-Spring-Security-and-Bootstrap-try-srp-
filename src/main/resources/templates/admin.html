@@ -1,275 +1,278 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Admin Panel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.2 -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+            crossorigin="anonymous"
+    />
+
     <style>
-        body {
-            background: #f8f9fa;
-            padding: 20px;
+        :root{
+            /* мягкая палитра розового */
+            --rose-50:#fff7fa; --rose-75:#fff1f6; --rose-100:#ffe8f0; --rose-150:#ffdbe6;
+            --rose-200:#ffc9d9; --rose-300:#ffafc7; --rose-400:#ff95b6; --rose-500:#ff7aa3;
+            --rose-600:#f56592; --rose-700:#e05282; --gray-600:#6c757d; --shadow:0 12px 30px rgba(255,149,182,.2);
         }
-        .user-info {
-            background: #e9ecef;
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-weight: 500;
+        body{background:var(--rose-50); padding:20px;}
+        .header-soft{
+            background:linear-gradient(180deg, var(--rose-400), var(--rose-300));
+            color:#fff; padding:0.85rem 1.1rem; border-radius:16px; box-shadow:var(--shadow); margin-bottom:1rem;
         }
-        .btn-pink-primary {
-            background: linear-gradient(135deg, #ff6b9d 0%, #ff4d7d 100%);
-            border: none;
-            color: white;
-            font-weight: 600;
+        .card-soft{border:none; border-radius:16px; box-shadow:var(--shadow); background:#fff;}
+        .card-soft .card-header{
+            background:linear-gradient(180deg, var(--rose-100), var(--rose-75));
+            border-bottom:3px solid var(--rose-150); color:#b43d66; font-weight:700;
         }
-        .btn-pink-warning {
-            background: linear-gradient(135deg, #ff93ac 0%, #ff7a9c 100%);
-            border: none;
-            color: white;
-            font-weight: 600;
+        .table thead th{background:var(--rose-75); color:#b43d66;}
+        .badge-rose{background:linear-gradient(135deg, var(--rose-400), var(--rose-300)); color:#fff;}
+        .form-control{border:1px solid var(--rose-150); border-radius:12px; background:#fff;}
+        .form-control:focus{border-color:var(--rose-300); box-shadow:0 0 0 .25rem rgba(255,149,182,.25);}
+        .nav-tabs .nav-link{color:#b43d66;}
+        .nav-tabs .nav-link.active{
+            background:var(--rose-75); border-color:var(--rose-150); color:#962c55; font-weight:600;
+            box-shadow:0 6px 18px rgba(255,149,182,.22);
         }
-        .btn-pink-danger {
-            background: linear-gradient(135deg, #ff6b8b 0%, #ff4777 100%);
-            border: none;
-            color: white;
-            font-weight: 600;
-        }
-        .btn-pink-secondary {
-            background: linear-gradient(135deg, #ffb6c1 0%, #ffa7b6 100%);
-            border: none;
-            color: #8b0040;
-            font-weight: 600;
-        }
+        /* кнопки — нежные розовые акценты */
+        .btn-rose-primary{background:linear-gradient(135deg, var(--rose-500), var(--rose-400)); color:#fff; border:none;}
+        .btn-rose-primary:hover{background:linear-gradient(135deg, var(--rose-600), var(--rose-500)); color:#fff; box-shadow:0 8px 18px rgba(245,101,146,.28);}
+        .btn-rose-secondary{background:linear-gradient(135deg, #f1f3f5, #e9ecef); color:#7a7f85; border:none;}
+        .btn-rose-secondary:hover{background:linear-gradient(135deg, #e9ecef, #dee2e6); color:#5f6469;}
+        .btn-rose-warning{background:linear-gradient(135deg, var(--rose-300), var(--rose-200)); color:#7d2245; border:none;}
+        .btn-rose-warning:hover{background:linear-gradient(135deg, var(--rose-400), var(--rose-300)); color:#6a1939;}
+        .btn-rose-danger{background:linear-gradient(135deg, #ff9aa2, #ff7b8a); color:#fff; border:none;}
+        .btn-rose-danger:hover{background:linear-gradient(135deg, #ff7b8a, #ff5c70); color:#fff;}
+        .modal-content{border:none; border-radius:16px; box-shadow:var(--shadow);}
+        .modal-header{background:var(--rose-75); border-bottom:3px solid var(--rose-150); color:#b43d66;}
     </style>
 </head>
 <body>
-<!-- Кнопка выхода -->
-<div style="position: absolute; top: 20px; right: 20px;">
-    <a th:href="@{/logout}" class="btn btn-pink-secondary">
-        Выйти
-    </a>
-</div>
+<div class="container">
 
-<div class="container mt-4">
-    <!-- User Info -->
-    <div class="user-info">
-        <span th:text="|${#authentication.name} with roles: ${#authentication.authorities}|"></span>
-    </div>
-
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Admin panel</h2>
-        <button type="button" class="btn btn-pink-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-            New User
-        </button>
-    </div>
-
-    <!-- Users Table -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">All users</h5>
+    <!-- шапка -->
+    <div class="d-flex justify-content-between align-items-center header-soft">
+        <div class="small">
+            <span th:text="|${#authentication.name} with roles: ${#authentication.authorities}|"></span>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Age</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="user : ${users}">
-                        <td th:text="${user.id}"></td>
-                        <td th:text="${user.username}"></td>
-                        <td th:text="${user.age}"></td>
-                        <td th:text="${user.email}"></td>
-                        <td>
-                                    <span th:each="role, stat : ${user.roles}"
-                                          th:text="${role.name.substring(5) + (stat.last ? '' : ' ')}"></span>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-pink-warning btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#editUserModal"
-                                    th:attr="data-user-id=${user.id},
-                                                     data-user-username=${user.username},
-                                                     data-user-email=${user.email},
-                                                     data-user-age=${user.age}">
-                                Edit
-                            </button>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-pink-danger btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteUserModal"
-                                    th:attr="data-user-id=${user.id},
-                                                     data-user-username=${user.username}">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+        <form th:action="@{/logout}" method="post" class="m-0">
+            <button class="btn btn-rose-secondary btn-sm">Logout</button>
+        </form>
+    </div>
+
+    <!-- табы -->
+    <ul class="nav nav-tabs mb-3" id="tabs">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#adminPanel">Admin Panel</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#newUser">New User</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- таблица пользователей -->
+        <div class="tab-pane fade show active" id="adminPanel">
+            <div class="card card-soft">
+                <div class="card-header">Users table</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>ID</th><th>Username</th><th>Age</th><th>Email</th><th>Role</th>
+                                <th class="text-center">Edit</th><th class="text-center">Delete</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="user : ${users}">
+                                <td th:text="${user.id}"></td>
+                                <td th:text="${user.username}"></td>
+                                <td th:text="${user.age}"></td>
+                                <td th:text="${user.email}"></td>
+                                <td>
+                                    <span th:each="r : ${user.roles}" class="badge badge-rose me-1" th:text="${r}"></span>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-rose-warning btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#editUserModal"
+                                            th:attr="data-user-id=${user.id},
+                                   data-user-username=${user.username},
+                                   data-user-email=${user.email},
+                                   data-user-age=${user.age}">
+                                        Edit
+                                    </button>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-rose-danger btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#deleteUserModal"
+                                            th:attr="data-user-id=${user.id}, data-user-username=${user.username}">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">New User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/admin/users/create}" method="post">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" class="form-control" name="username" required autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" name="email" required autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Age</label>
-                        <input type="number" class="form-control" name="age" required autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-control" name="password" required autocomplete="new-password">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Role</label>
-                        <div th:each="role : ${roles}">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       th:value="${role.id}" name="roleIds">
-                                <label class="form-check-label" th:text="${role.name.substring(5)}"></label>
+        <!-- создание пользователя -->
+        <div class="tab-pane fade" id="newUser">
+            <div class="card card-soft">
+                <div class="card-header">Add new user</div>
+                <div class="card-body">
+                    <!-- ВАЖНО: отключаем автозаполнение целиком и для каждого поля -->
+                    <form th:action="@{/admin/users/create}" method="post" autocomplete="off">
+                        <!-- honeypot против агрессивного автозаполнения Chrome -->
+                        <input type="text" name="fakeusernameremembered" style="display:none" tabindex="-1" autocomplete="off">
+                        <input type="password" name="fakepasswordremembered" style="display:none" tabindex="-1" autocomplete="off">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" name="username" placeholder="Enter username"
+                                       autocomplete="off" value="">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" name="password" placeholder="Enter password"
+                                       autocomplete="new-password" value="">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" placeholder="Enter email"
+                                       autocomplete="off" value="">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Age</label>
+                                <input type="number" class="form-control" name="age" placeholder="Age" inputmode="numeric" value="">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label d-block">Roles</label>
+                                <div class="form-check form-check-inline" th:each="role : ${roles}">
+                                    <input class="form-check-input" type="checkbox"
+                                           th:value="${role.id}" th:id="${'role_' + role.id}" name="roleIds">
+                                    <label class="form-check-label" th:for="${'role_' + role.id}"
+                                           th:text="${#strings.substring(role.name, 5)}"></label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-rose-primary">Create</button>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-pink-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-pink-primary">Add User</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit User Modal -->
-<div class="modal fade" id="editUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form th:action="@{/admin/users/update/}" method="post" id="editUserForm">
-                <div class="modal-body">
-                    <input type="hidden" id="editUserId" name="id">
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" class="form-control" id="editUserUsername" name="username" required autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="editUserEmail" name="email" required autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Age</label>
-                        <input type="number" class="form-control" id="editUserAge" name="age" required autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password (leave empty to keep current)</label>
-                        <input type="password" class="form-control" name="password" autocomplete="new-password">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Role</label>
-                        <div th:each="role : ${roles}">
-                            <div class="form-check">
+        </div>
+
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit user</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/users/update/}" method="post" id="editUserForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="editUserId" name="id">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" id="editUsername" name="username" autocomplete="off" value="">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="editPassword" name="password"
+                                   placeholder="Leave blank to keep current" autocomplete="new-password" value="">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editEmail" name="email" autocomplete="off" value="">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Age</label>
+                            <input type="number" class="form-control" id="editAge" name="age" inputmode="numeric" value="">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label d-block">Roles</label>
+                            <div class="form-check form-check-inline" th:each="role : ${roles}">
                                 <input class="form-check-input role-checkbox" type="checkbox"
-                                       th:value="${role.id}" th:id="${'role_' + role.id}">
-                                <label class="form-check-label"
-                                       th:text="${role.name.substring(5)}"
-                                       th:for="${'role_' + role.id}"></label>
+                                       th:value="${role.id}" th:id="${'role_' + role.id}" name="roleIds">
+                                <label class="form-check-label" th:for="${'role_' + role.id}"
+                                       th:text="${#strings.substring(role.name, 5)}"></label>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-pink-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-pink-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Delete User Modal -->
-<div class="modal fade" id="deleteUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Delete User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-footer">
+                        <button class="btn btn-rose-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                        <button class="btn btn-rose-primary" type="submit">Save changes</button>
+                    </div>
+                </form>
             </div>
-            <form th:action="@{/admin/users/delete/}" method="post" id="deleteUserForm">
-                <div class="modal-body">
-                    <input type="hidden" id="deleteUserId" name="id">
-                    <p>Are you sure you want to delete user: <strong id="deleteUserUsername"></strong>?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-pink-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-pink-danger">Delete</button>
-                </div>
-            </form>
         </div>
     </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete user</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/users/delete/}" method="post" id="deleteUserForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="deleteUserId" name="id">
+                        <p>Are you sure you want to delete user <span id="deleteUsername" class="fw-semibold"></span>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-rose-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-rose-danger" type="submit">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Edit User Modal
-    const editUserModal = document.getElementById('editUserModal');
-    editUserModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const userId = button.getAttribute('data-user-id');
-        const username = button.getAttribute('data-user-username');
-        const email = button.getAttribute('data-user-email');
-        const age = button.getAttribute('data-user-age');
+<!-- Bootstrap bundle -->
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
 
-        document.getElementById('editUserId').value = userId;
-        document.getElementById('editUserUsername').value = username;
-        document.getElementById('editUserEmail').value = email;
-        document.getElementById('editUserAge').value = age;
+<!-- Надёжный thymeleaf-inline JS -->
+<script th:inline="javascript">
+    const UPDATE_BASE = /*[[@{/admin/users/update/}]]*/ '/admin/users/update/';
+    const DELETE_BASE = /*[[@{/admin/users/delete/}]]*/ '/admin/users/delete/';
 
-        // Update form action with user ID
-        document.getElementById('editUserForm').action = '/admin/users/update/' + userId;
+    // Edit modal
+    const editModal = document.getElementById('editUserModal');
+    editModal.addEventListener('show.bs.modal', (e) => {
+        const b = e.relatedTarget;
+        const id = b.getAttribute('data-user-id');
+        document.getElementById('editUserId').value = id;
+        document.getElementById('editUsername').value = b.getAttribute('data-user-username') || '';
+        document.getElementById('editEmail').value = b.getAttribute('data-user-email') || '';
+        document.getElementById('editAge').value = b.getAttribute('data-user-age') || '';
+        document.getElementById('editPassword').value = '';
+        document.getElementById('editUserForm').setAttribute('action', UPDATE_BASE + id);
+        document.querySelectorAll('#editUserModal .role-checkbox').forEach(cb => cb.checked = false);
     });
 
-    // Delete User Modal
-    const deleteUserModal = document.getElementById('deleteUserModal');
-    deleteUserModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const userId = button.getAttribute('data-user-id');
-        const username = button.getAttribute('data-user-username');
-
-        document.getElementById('deleteUserId').value = userId;
-        document.getElementById('deleteUserUsername').textContent = username;
-
-        // Update form action with user ID
-        document.getElementById('deleteUserForm').action = '/admin/users/delete/' + userId;
+    // Delete modal
+    const deleteModal = document.getElementById('deleteUserModal');
+    deleteModal.addEventListener('show.bs.modal', (e) => {
+        const b = e.relatedTarget;
+        const id = b.getAttribute('data-user-id');
+        document.getElementById('deleteUserId').value = id;
+        document.getElementById('deleteUsername').textContent = b.getAttribute('data-user-username') || '';
+        document.getElementById('deleteUserForm').setAttribute('action', DELETE_BASE + id);
     });
 </script>
 </body>

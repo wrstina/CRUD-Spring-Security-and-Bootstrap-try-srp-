@@ -12,7 +12,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "users")
-public class User implements UserDetails {
+public class User implements UserDetails { // сущность JPA для ролей с реализацией интерфейса Spring Security UserDetails
 
     @Getter
     @Id

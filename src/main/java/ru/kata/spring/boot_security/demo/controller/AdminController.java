@@ -1,54 +1,53 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.dto.UserCreateDto;
 import ru.kata.spring.boot_security.demo.dto.UserUpdateDto;
-import ru.kata.spring.boot_security.demo.mapper.UserMapper;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 @Controller
 @RequestMapping("/admin")
-public class AdminController { // нет бизнес-логики: только маршрутизация
+@RequiredArgsConstructor
+public class AdminController {
 
     private final UserService userService;
     private final RoleService roleService;
-    private final UserMapper userMapper;
-
-    public AdminController(UserService userService, RoleService roleService, UserMapper userMapper) {
-        this.userService = userService;
-        this.roleService = roleService;
-        this.userMapper = userMapper;
-    }
 
     @GetMapping
     public String adminPage(Model model) {
-        // Имена атрибутов оставлены прежними (HTML не меняем)
+        // только наполняем модель для первого показа страницы.
         model.addAttribute("users", userService.findAll());
         model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("newUser", new UserCreateDto());
+        model.addAttribute("editUser", new UserUpdateDto());
         return "admin";
     }
 
     @PostMapping("/users/create")
-    public String createUser(@ModelAttribute("newUser") @Valid UserCreateDto dto) {
-        userService.save(userMapper.fromCreateDto(dto));
+    public String createUser(
+            @ModelAttribute("newUser") @Valid UserCreateDto dto
+    ) {
+        userService.save(dto);
         return "redirect:/admin";
     }
 
     @PostMapping("/users/update/{id}")
-    public String updateUser(@PathVariable Long id, @ModelAttribute("editUser") @Valid UserUpdateDto dto) {
-        var existing = userService.getById(id);
-        userMapper.merge(dto, existing);
-        userService.update(existing);
+    public String updateUser(
+            @PathVariable Long id,
+            @ModelAttribute("editUser") @Valid UserUpdateDto dto
+    ) {
+        userService.update(id, dto);
         return "redirect:/admin";
     }
 
     @PostMapping("/users/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
-        userService.deleteById(id);
+        userService.delete(id);
         return "redirect:/admin";
     }
 }

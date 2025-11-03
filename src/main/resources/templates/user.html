@@ -5,116 +5,55 @@
     <title>User Information</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .user-info-card {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .user-header {
-            background: linear-gradient(135deg, #ff6b9d 0%, #ff4d7d 100%);
-            color: white;
-            padding: 3rem 0;
-            margin-bottom: 2rem;
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.3);
-        }
-        .info-table {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3);
-            overflow: hidden;
-            border: none;
-        }
-        .info-table th {
-            background: linear-gradient(135deg, #fff5f5 0%, #ffeef0 100%);
-            font-weight: 600;
-            padding: 1.5rem;
-            color: #d63384;
-            border-bottom: 3px solid #ffd6e0;
-            font-size: 1.1rem;
-        }
-        .info-table td {
-            padding: 1.5rem;
-            border-bottom: 1px solid #ffd6e0;
-            color: #8b0040;
-            font-size: 1.05rem;
-        }
-        .btn-pink-secondary {
-            background: linear-gradient(135deg, #ffb6c1 0%, #ffa7b6 100%);
-            border: none;
-            color: #8b0040;
-            font-weight: 600;
-            padding: 0.75rem 2rem;
-            border-radius: 25px;
-            margin-top: 2rem;
-        }
-        .btn-pink-secondary:hover {
-            background: linear-gradient(135deg, #ffa7b6 0%, #ff93ac 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 167, 182, 0.4);
-            color: #8b0040;
-        }
-        body {
-            background: linear-gradient(135deg, #fff5f5 0%, #ffeef0 100%);
-            min-height: 100vh;
-        }
-        .card {
-            border: none;
-            border-radius: 20px;
-        }
+        .user-info-card { max-width: 800px; margin: 0 auto; }
+        .user-header { background: linear-gradient(135deg, #ff6b9d 0%, #ff4d7d 100%); color: white; padding: 3rem 0; margin-bottom: 2rem; border-radius: 0 0 30px 30px; box-shadow: 0 10px 30px rgba(255, 107, 157, 0.3); }
+        .info-table { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3); overflow: hidden; border: none; }
+        .info-table th { background: linear-gradient(135deg, #fff5f5 0%, #ffeef0 100%); font-weight: 600; padding: 1.5rem; color: #d63384; border-bottom: 3px solid #ffd6e0; font-size: 1.1rem; }
+        .info-table td { padding: 1.5rem; border-color: #ffd6e0; }
+        .badge { background: linear-gradient(135deg, #ff6b9d 0%, #ff4d7d 100%); color: white; margin-right: 0.5rem; }
     </style>
 </head>
 <body>
-<!-- Header -->
-<div class="user-header text-center">
-    <div class="container">
-        <h1 class="display-4 mb-3 fw-bold">User information-page</h1>
-        <p class="lead mb-0 opacity-75">Welcome to your personal dashboard</p>
+<div class="container user-info-card">
+
+    <div class="d-flex justify-content-between align-items-center user-header px-4 py-3">
+        <h2 class="mb-0">User Information</h2>
+        <form th:action="@{/logout}" method="post">
+            <button class="btn btn-light">Logout</button>
+        </form>
     </div>
-</div>
 
-<div class="container">
-    <div class="user-info-card">
-        <div class="card border-0 shadow-lg">
-            <div class="card-header bg-white border-0 py-4">
-                <h3 class="card-title mb-0 text-center" style="color: #d63384; font-weight: 700;">About user</h3>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-borderless info-table mb-0">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Age</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td th:text="${user.id}"></td>
-                        <td th:text="${user.username}"></td>
-                        <td th:text="${user.age}"></td>
-                        <td th:text="${user.email}"></td>
-                        <td>
-                                    <span th:each="role, stat : ${user.roles}"
-                                          class="badge rounded-pill"
-                                          style="background: linear-gradient(135deg, #ff93ac 0%, #ff7a9c 100%); color: white; padding: 0.5rem 1rem;"
-                                          th:text="${role.name.substring(5)}"></span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="text-center mt-4">
-            <a th:href="@{/logout}" class="btn btn-pink-secondary">
-                Выйти
-            </a>
+    <div class="card info-table">
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Age</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td th:text="${user.id}"></td>
+                    <td th:text="${user.username}"></td>
+                    <td th:text="${user.age}"></td>
+                    <td th:text="${user.email}"></td>
+                    <td>
+                        <!-- roles = List<String> -->
+                        <span th:each="role, stat : ${user.roles}"
+                              class="badge rounded-pill"
+                              style="font-size: 0.9rem; padding: 0.5rem 1rem;"
+                              th:text="${role}"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 </body>
 </html>

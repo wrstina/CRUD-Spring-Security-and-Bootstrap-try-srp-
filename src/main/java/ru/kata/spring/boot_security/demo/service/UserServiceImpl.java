@@ -1,134 +1,149 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.dto.UserCreateDto;
+import ru.kata.spring.boot_security.demo.dto.UserUpdateDto;
+import ru.kata.spring.boot_security.demo.dto.UserViewDto;
+import ru.kata.spring.boot_security.demo.mapper.UserMapper;
 import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+// логика кодирования пароля + нормализация ролей
+
 @Service
-@Transactional
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository,
-                           RoleService roleService,
-                           PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.roleService = roleService;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    // Security
     @Override
-    @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
-                .map(u -> (UserDetails) u)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-    }
-
-    // Read only
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public List<UserViewDto> findAll() {
+        return userRepository.findAll().stream()
+                .map(userMapper::toViewDto)
+                .toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+    public UserViewDto getById(Long id) {
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("User not found: id=" + id));
+        return userMapper.toViewDto(u);
     }
 
+    @Transactional
     @Override
-    @Transactional(readOnly = true)
-    public User getById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found, id=" + id));
-    }
-
-    // Create/Update/Delete
-    @Override
-    public User save(User user) {
-        // регистронезависимая уникальность username при создании/смене
-        if (user.getId() == null && userRepository.existsByUsernameIgnoreCase(user.getUsername())) {
-            throw new IllegalArgumentException("Username already exists: " + user.getUsername());
+    public UserViewDto save(UserCreateDto dto) {
+        if (userRepository.existsByUsernameIgnoreCase(dto.getUsername())) {
+            throw new IllegalArgumentException("Username already exists: " + dto.getUsername());
         }
 
-        user.setRoles(normalizeRoles(user.getRoles()));
+        // берем данные сущности из простых полей (без пароля и ролей)
+        User entity = userMapper.fromCreateDto(dto);
 
-        // пароль: обязателен при создании; кодируем, если задан
-        if (user.getId() == null) {
-            if (user.getPassword() == null || user.getPassword().isBlank()) {
-                throw new IllegalArgumentException("Password is required");
-            }
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        } else {
-            if (user.getPassword() == null || user.getPassword().isBlank()) {
-                user.setPassword(getById(user.getId()).getPassword());
-            } else {
-                user.setPassword(passwordEncoder.encode(user.getPassword()));
-            }
+        // пароль обязателен при создании
+        if (dto.getPassword() == null || dto.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Password is required");
         }
+        entity.setPassword(passwordEncoder.encode(dto.getPassword()));
 
-        return userRepository.save(user);
+        // нормализация ролей: null/empty -> ROLE_USER; иначе — по id из dto
+        entity.setRoles(normalizeRolesOnCreate(dto));
+
+        entity = userRepository.save(entity); // сохраняем в бд
+        return userMapper.toViewDto(entity); // возвращаем безопасное представление
     }
 
+    @Transactional
     @Override
-    public User update(User user) {
-        if (user.getId() == null) throw new IllegalArgumentException("User id is required");
+    public UserViewDto update(Long id, UserUpdateDto dto) {
+        User entity = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("User not found: id=" + id));
 
-        User existing = getById(user.getId());
-
-        // регистронезависимая уникальность username при создании/смене
-        String newUsername = user.getUsername();
-        if (newUsername != null && !newUsername.equalsIgnoreCase(existing.getUsername())
-                && userRepository.existsByUsernameIgnoreCase(newUsername)) {
-            throw new IllegalArgumentException("Username already exists: " + newUsername);
+        // проверка уникальности username, если меняется
+        String newName = dto.getUsername();
+        if (newName != null && !newName.equalsIgnoreCase(entity.getUsername())
+                && userRepository.existsByUsernameIgnoreCase(newName)) {
+            throw new IllegalArgumentException("Username already exists: " + newName);
         }
 
-        user.setRoles(normalizeRoles(user.getRoles()));
+        // переносим только простые поля (username/email/age) — без пароля и ролей
+        userMapper.merge(dto, entity);
 
-        // если пароль: пустой — оставляем старый; не пустой — кодируем
-        if (user.getPassword() == null || user.getPassword().isBlank()) {
-            user.setPassword(existing.getPassword());
-        } else {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // пароль меняем только если прислан не пустой
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            entity.setPassword(passwordEncoder.encode(dto.getPassword())); // CHANGED
         }
 
-        return userRepository.save(user);
+        // роли: null — не менять; empty — очистить; список id — заменить
+        if (dto.getRoleIds() != null) {
+            entity.setRoles(normalizeRolesOnUpdate(dto));
+        }
+
+        entity = userRepository.save(entity);
+        return userMapper.toViewDto(entity);
     }
 
+    @Transactional
     @Override
-    public void deleteById(Long id) {
+    public void delete(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new NoSuchElementException("User not found: id=" + id);
+        }
         userRepository.deleteById(id);
     }
 
-    // helpers
-    private Set<Role> normalizeRoles(Set<Role> roles) {
-        if (roles == null) roles = Collections.emptySet();
+    // Security методы
 
-        Set<Role> managed = roles.stream()
-                .filter(Objects::nonNull)
-                .map(r -> r.getId() != null ? roleService.getRoleById(r.getId()) : null)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
 
-        if (managed.isEmpty()) {
-            managed = Set.of(roleService.getRoleByName("ROLE_USER"));
+    @Override
+    public UserViewDto findByUsername(String username) {
+        User u = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+        return userMapper.toViewDto(u);
+    }
+
+    // нормализация ролей при создании: если ничего не пришло — назначаем ROLE_USER
+    private Set<Role> normalizeRolesOnCreate(UserCreateDto dto) {
+        if (dto.getRoleIds() == null || dto.getRoleIds().isEmpty()) {
+            return Set.of(roleService.getRoleByName("ROLE_USER"));
         }
-        return managed;
+        return dto.getRoleIds().stream()
+                .map(roleService::getRoleById)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    // нормализация ролей при обновлении:
+    // null — оставить как есть (мы сюда не попадём, проверка выше),
+    // empty — очистить все роли,
+    // иначе — заменить на набор по id
+    private Set<Role> normalizeRolesOnUpdate(UserUpdateDto dto) {
+        if (dto.getRoleIds().isEmpty()) {
+            return Set.of();
+        }
+        return dto.getRoleIds().stream()
+                .map(roleService::getRoleById)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

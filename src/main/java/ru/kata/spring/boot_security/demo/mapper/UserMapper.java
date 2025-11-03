@@ -3,55 +3,43 @@ package ru.kata.spring.boot_security.demo.mapper;
 import org.springframework.stereotype.Component;
 import ru.kata.spring.boot_security.demo.dto.UserCreateDto;
 import ru.kata.spring.boot_security.demo.dto.UserUpdateDto;
+import ru.kata.spring.boot_security.demo.dto.UserViewDto;
 import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
 
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 // адаптер между веб-слоем (DTO) и доменной моделью (User), изолирует контроллер от деталей доменной модели: контроллер видит DTO, а не JPA-сущности
 // разделяет ответственность: маппер — только преобразование данных;
 // сервис — бизнес-правила (проверка уникальности логина, кодирование пароля, нормализация ролей)
 @Component
 public class UserMapper {
+
+    // из CreateDto берём только простые поля
     public User fromCreateDto(UserCreateDto dto) {
         User u = new User();
         u.setUsername(dto.getUsername());
-        u.setPassword(dto.getPassword()); // кодировать будет сервис
         u.setEmail(dto.getEmail());
         u.setAge(dto.getAge());
-        u.setRoles(toRolesByIds(dto.getRoleIds()));
         return u;
     }
 
-    // обновляем поля сущности по правилам из UserUpdateDto:
-    // password: не заполнен — не менять
-    // roleIds: не заполнены — не менять, empty — очистить роли
+    // merge обновляет только простые поля
     public void merge(UserUpdateDto dto, User target) {
-        if (dto.getUsername() != null) target.setUsername(dto.getUsername());
-        if (dto.getEmail() != null)    target.setEmail(dto.getEmail());
+        target.setUsername(dto.getUsername());
+        target.setEmail(dto.getEmail());
         target.setAge(dto.getAge());
-
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            target.setPassword(dto.getPassword()); // кодировать будет сервис
-        }
-        List<Long> roleIds = dto.getRoleIds();
-        if (roleIds != null) {
-            target.setRoles(toRolesByIds(roleIds)); // empty -> пустой сет (очистить роли)
-        }
+        // пароль и роли не трогаем — это работа сервиса
     }
 
-    private Set<Role> toRolesByIds(List<Long> ids) {
-        if (ids == null) return null;
-        return ids.stream()
-                .map(id -> {
-                    Role r = new Role();
-                    r.setId(id);
-                    return r;
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+    // безопасное представление для UI: пароля нет, роли — как список имён без "ROLE_"
+    public UserViewDto toViewDto(User u) {
+        List<String> roleNames = u.getRoles().stream()
+                .map(Role::getName)
+                .map(n -> n != null && n.startsWith("ROLE_") ? n.substring(5) : n)
+                .sorted()
+                .toList();
+        return new UserViewDto(u.getId(), u.getUsername(), u.getEmail(), u.getAge(), roleNames);
     }
 }
 
