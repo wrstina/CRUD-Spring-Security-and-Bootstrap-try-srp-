@@ -20,7 +20,6 @@ public class AdminController {
 
     @GetMapping
     public String adminPage(Model model) {
-        // только наполняем модель для первого показа страницы.
         model.addAttribute("users", userService.findAll());
         model.addAttribute("roles", roleService.getAllRoles());
         model.addAttribute("newUser", new UserCreateDto());
@@ -30,7 +29,7 @@ public class AdminController {
 
     @PostMapping("/users/create")
     public String createUser(
-            @ModelAttribute("newUser") @Valid UserCreateDto dto
+            @Valid @ModelAttribute("newUser") UserCreateDto dto
     ) {
         userService.save(dto);
         return "redirect:/admin";
@@ -39,7 +38,7 @@ public class AdminController {
     @PostMapping("/users/update/{id}")
     public String updateUser(
             @PathVariable Long id,
-            @ModelAttribute("editUser") @Valid UserUpdateDto dto
+            @Valid @ModelAttribute("editUser") UserUpdateDto dto
     ) {
         userService.update(id, dto);
         return "redirect:/admin";
