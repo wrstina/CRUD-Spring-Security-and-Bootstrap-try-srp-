@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Setter
@@ -23,7 +24,9 @@ public class UserUpdateDto { // нет бизнес-логики: только �
     @Min(18) @Max(150)
     private int age;
 
-    private List<Long> roleIds; // null - не менять, empty - очистить
+    private List<Long> roleIds = new ArrayList<>();
+
+    private boolean rolesSpecified = false;
 
     public UserUpdateDto() {}
 
@@ -32,6 +35,12 @@ public class UserUpdateDto { // нет бизнес-логики: только �
         this.password = password;
         this.email = email;
         this.age = age;
-        this.roleIds = roleIds;
+        setRoleIds(roleIds);
+    }
+
+    // null -> пустой список (устраняет проблему неинициализированного поля)
+    public void setRoleIds(List<Long> roleIds) {
+        this.rolesSpecified = true;
+        this.roleIds = (roleIds == null) ? new ArrayList<>() : roleIds;
     }
 }

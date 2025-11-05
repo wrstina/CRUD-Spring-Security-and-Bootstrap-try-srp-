@@ -88,11 +88,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
         // пароль меняем только если прислан не пустой
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            entity.setPassword(passwordEncoder.encode(dto.getPassword())); // CHANGED
+            entity.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
-        // роли: null — не менять; empty — очистить; список id — заменить
-        if (dto.getRoleIds() != null) {
+        // роли меняем только если поле "roleIds" было заполнено
+        if (dto.isRolesSpecified()) {
             entity.setRoles(normalizeRolesOnUpdate(dto));
         }
 
