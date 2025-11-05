@@ -2,7 +2,7 @@ package ru.kata.spring.boot_security.demo.dto;
 
 import java.util.List;
 
-// Плоское безопасное представление пользователя для UI
+// Плоское безопасное представление пользователя для UI без пароля
 public record UserViewDto(
         Long id,
         String username,

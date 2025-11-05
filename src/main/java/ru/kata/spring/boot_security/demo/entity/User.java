@@ -34,7 +34,7 @@ public class User implements UserDetails { // сущность JPA для рол
     private int age;
 
     @Getter
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),

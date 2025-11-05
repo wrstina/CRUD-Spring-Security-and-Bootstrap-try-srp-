@@ -1,279 +1,171 @@
-<!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!doctype html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <title>Admin Panel</title>
-
-    <!-- Bootstrap 5.3.2 -->
-    <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-            crossorigin="anonymous"
-    />
+    <meta charset="utf-8">
+    <title>Админ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="api-base" content="">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
+        /* Нежные розовые оттенки */
         :root{
-            /* мягкая палитра розового */
-            --rose-50:#fff7fa; --rose-75:#fff1f6; --rose-100:#ffe8f0; --rose-150:#ffdbe6;
-            --rose-200:#ffc9d9; --rose-300:#ffafc7; --rose-400:#ff95b6; --rose-500:#ff7aa3;
-            --rose-600:#f56592; --rose-700:#e05282; --gray-600:#6c757d; --shadow:0 12px 30px rgba(255,149,182,.2);
+            --rose-50:#fff6fa;
+            --rose-100:#ffeaf3;
+            --rose-200:#ffd6e8;
+            --rose-300:#ffbfdc;
+            --rose-400:#ffa5cf;
+            --rose-500:#ff86c0;
+            --rose-600:#ff6fb3;
+            --rose-700:#f05ca2;
+            --ink-700:#1f2937;
         }
-        body{background:var(--rose-50); padding:20px;}
-        .header-soft{
-            background:linear-gradient(180deg, var(--rose-400), var(--rose-300));
-            color:#fff; padding:0.85rem 1.1rem; border-radius:16px; box-shadow:var(--shadow); margin-bottom:1rem;
+
+        body{ color:var(--ink-700); }
+
+        /* Таблица и общие скругления */
+        .table thead th{ background:var(--rose-100); }
+        .btn, .form-control{ border-radius:12px; }
+
+        /* Фирменные кнопки */
+        .btn-rose{
+            background:var(--rose-500);
+            border-color:var(--rose-500);
+            color:#fff;
         }
-        .card-soft{border:none; border-radius:16px; box-shadow:var(--shadow); background:#fff;}
-        .card-soft .card-header{
-            background:linear-gradient(180deg, var(--rose-100), var(--rose-75));
-            border-bottom:3px solid var(--rose-150); color:#b43d66; font-weight:700;
+        .btn-rose:hover{ background:var(--rose-600); border-color:var(--rose-600); color:#fff; }
+
+        .btn-rose-outline{
+            color:var(--rose-700);
+            border-color:var(--rose-400);
+            background:transparent;
         }
-        .table thead th{background:var(--rose-75); color:#b43d66;}
-        .badge-rose{background:linear-gradient(135deg, var(--rose-400), var(--rose-300)); color:#fff;}
-        .form-control{border:1px solid var(--rose-150); border-radius:12px; background:#fff;}
-        .form-control:focus{border-color:var(--rose-300); box-shadow:0 0 0 .25rem rgba(255,149,182,.25);}
-        .nav-tabs .nav-link{color:#b43d66;}
-        .nav-tabs .nav-link.active{
-            background:var(--rose-75); border-color:var(--rose-150); color:#962c55; font-weight:600;
-            box-shadow:0 6px 18px rgba(255,149,182,.22);
+        .btn-rose-outline:hover{
+            color:#fff;
+            background:var(--rose-500);
+            border-color:var(--rose-500);
         }
-        /* кнопки — нежные розовые акценты */
-        .btn-rose-primary{background:linear-gradient(135deg, var(--rose-500), var(--rose-400)); color:#fff; border:none;}
-        .btn-rose-primary:hover{background:linear-gradient(135deg, var(--rose-600), var(--rose-500)); color:#fff; box-shadow:0 8px 18px rgba(245,101,146,.28);}
-        .btn-rose-secondary{background:linear-gradient(135deg, #f1f3f5, #e9ecef); color:#7a7f85; border:none;}
-        .btn-rose-secondary:hover{background:linear-gradient(135deg, #e9ecef, #dee2e6); color:#5f6469;}
-        .btn-rose-warning{background:linear-gradient(135deg, var(--rose-300), var(--rose-200)); color:#7d2245; border:none;}
-        .btn-rose-warning:hover{background:linear-gradient(135deg, var(--rose-400), var(--rose-300)); color:#6a1939;}
-        .btn-rose-danger{background:linear-gradient(135deg, #ff9aa2, #ff7b8a); color:#fff; border:none;}
-        .btn-rose-danger:hover{background:linear-gradient(135deg, #ff7b8a, #ff5c70); color:#fff;}
-        .modal-content{border:none; border-radius:16px; box-shadow:var(--shadow);}
-        .modal-header{background:var(--rose-75); border-bottom:3px solid var(--rose-150); color:#b43d66;}
+
+        /* Единая ширина и ровное выравнивание кнопок действий */
+        .actions{ display:flex; justify-content:flex-end; gap:.5rem; }
+        .actions .btn{ min-width:110px; padding:.35rem .75rem; }
+
+        /* Сообщения */
+        #banner{ border-radius:12px; }
     </style>
 </head>
 <body>
-<div class="container">
-
-    <!-- шапка -->
-    <div class="d-flex justify-content-between align-items-center header-soft">
-        <div class="small">
-            <span th:text="|${#authentication.name} with roles: ${#authentication.authorities}|"></span>
-        </div>
-        <form th:action="@{/logout}" method="post" class="m-0">
-            <button class="btn btn-rose-secondary btn-sm">Logout</button>
+<nav class="navbar navbar-light bg-light border-bottom">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">Админ</span>
+        <form action="/logout" method="post" class="m-0">
+            <button type="submit" class="btn btn-rose">Выйти</button>
         </form>
     </div>
+</nav>
 
-    <!-- табы -->
-    <ul class="nav nav-tabs mb-3" id="tabs">
-        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#adminPanel">Admin Panel</a></li>
-        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#newUser">New User</a></li>
-    </ul>
+<div class="container py-4">
+    <div id="banner" class="alert d-none" role="alert"></div>
 
-    <div class="tab-content">
-
-        <!-- таблица пользователей -->
-        <div class="tab-pane fade show active" id="adminPanel">
-            <div class="card card-soft">
-                <div class="card-header">Users table</div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle">
-                            <thead>
-                            <tr>
-                                <th>ID</th><th>Username</th><th>Age</th><th>Email</th><th>Role</th>
-                                <th class="text-center">Edit</th><th class="text-center">Delete</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="user : ${users}">
-                                <td th:text="${user.id}"></td>
-                                <td th:text="${user.username}"></td>
-                                <td th:text="${user.age}"></td>
-                                <td th:text="${user.email}"></td>
-                                <td>
-                                    <span th:each="r : ${user.roles}" class="badge badge-rose me-1" th:text="${r}"></span>
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-rose-warning btn-sm"
-                                            data-bs-toggle="modal" data-bs-target="#editUserModal"
-                                            th:attr="data-user-id=${user.id},
-                                   data-user-username=${user.username},
-                                   data-user-email=${user.email},
-                                   data-user-age=${user.age}">
-                                        Edit
-                                    </button>
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-rose-danger btn-sm"
-                                            data-bs-toggle="modal" data-bs-target="#deleteUserModal"
-                                            th:attr="data-user-id=${user.id}, data-user-username=${user.username}">
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- создание пользователя -->
-        <div class="tab-pane fade" id="newUser">
-            <div class="card card-soft">
-                <div class="card-header">Add new user</div>
-                <div class="card-body">
-                    <!-- ВАЖНО: отключаем автозаполнение целиком и для каждого поля -->
-                    <form th:action="@{/admin/users/create}" method="post" autocomplete="off">
-                        <!-- honeypot против агрессивного автозаполнения Chrome -->
-                        <input type="text" name="fakeusernameremembered" style="display:none" tabindex="-1" autocomplete="off">
-                        <input type="password" name="fakepasswordremembered" style="display:none" tabindex="-1" autocomplete="off">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Username</label>
-                                <input type="text" class="form-control" name="username" placeholder="Enter username"
-                                       autocomplete="off" value="">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Password</label>
-                                <input type="password" class="form-control" name="password" placeholder="Enter password"
-                                       autocomplete="new-password" value="">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="email" placeholder="Enter email"
-                                       autocomplete="off" value="">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Age</label>
-                                <input type="number" class="form-control" name="age" placeholder="Age" inputmode="numeric" value="">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label d-block">Roles</label>
-                                <div class="form-check form-check-inline" th:each="role : ${roles}">
-                                    <input class="form-check-input" type="checkbox"
-                                           th:value="${role.id}" th:id="${'role_' + role.id}" name="roleIds">
-                                    <label class="form-check-label" th:for="${'role_' + role.id}"
-                                           th:text="${#strings.substring(role.name, 5)}"></label>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <button class="btn btn-rose-primary">Create</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="m-0">Пользователи</h5>
+        <button id="btnOpenCreate" class="btn btn-rose">Добавить</button>
     </div>
 
-    <!-- Edit Modal -->
-    <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit user</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form th:action="@{/admin/users/update/}" method="post" id="editUserForm">
-                    <div class="modal-body">
-                        <input type="hidden" id="editUserId" name="id">
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" id="editUsername" name="username" autocomplete="off" value="">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" class="form-control" id="editPassword" name="password"
-                                   placeholder="Leave blank to keep current" autocomplete="new-password" value="">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" id="editEmail" name="email" autocomplete="off" value="">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Age</label>
-                            <input type="number" class="form-control" id="editAge" name="age" inputmode="numeric" value="">
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label d-block">Roles</label>
-                            <div class="form-check form-check-inline" th:each="role : ${roles}">
-                                <input class="form-check-input role-checkbox" type="checkbox"
-                                       th:value="${role.id}" th:id="${'role_' + role.id}" name="roleIds">
-                                <label class="form-check-label" th:for="${'role_' + role.id}"
-                                       th:text="${#strings.substring(role.name, 5)}"></label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-rose-secondary" type="button" data-bs-dismiss="modal">Close</button>
-                        <button class="btn btn-rose-primary" type="submit">Save changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th style="width:70px;">ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th style="width:100px;">Age</th>
+                <th style="width:220px;">Roles</th>
+                <th style="width:240px;" class="text-end">Действия</th>
+            </tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+        </table>
     </div>
-
-    <!-- Delete Modal -->
-    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Delete user</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form th:action="@{/admin/users/delete/}" method="post" id="deleteUserForm">
-                    <div class="modal-body">
-                        <input type="hidden" id="deleteUserId" name="id">
-                        <p>Are you sure you want to delete user <span id="deleteUsername" class="fw-semibold"></span>?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-rose-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
-                        <button class="btn btn-rose-danger" type="submit">Delete</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
 </div>
 
-<!-- Bootstrap bundle -->
-<script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-        crossorigin="anonymous"></script>
+<!-- Modal Add/Edit -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form id="userForm" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalTitle">Добавить пользователя</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="userId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input id="username" name="username" class="form-control" required>
+                            <div class="invalid-feedback" data-for="username"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input id="email" name="email" type="email" class="form-control" required>
+                            <div class="invalid-feedback" data-for="email"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Password
+                                <small class="text-muted" id="pwdNote">(оставь пустым — без изменений)</small>
+                            </label>
+                            <input id="password" name="password" type="password" class="form-control">
+                            <div class="invalid-feedback" data-for="password"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Age</label>
+                            <input id="age" name="age" type="number" min="0" class="form-control" required>
+                            <div class="invalid-feedback" data-for="age"></div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label d-block mb-1">Роли</label>
+                            <div id="rolesBox" class="d-flex flex-wrap gap-3"></div>
+                            <div class="invalid-feedback d-block" data-for="roles"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-rose-outline" type="button" data-bs-dismiss="modal">Отмена</button>
+                    <button id="submitUser" type="submit" class="btn btn-rose">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-<!-- Надёжный thymeleaf-inline JS -->
-<script th:inline="javascript">
-    const UPDATE_BASE = /*[[@{/admin/users/update/}]]*/ '/admin/users/update/';
-    const DELETE_BASE = /*[[@{/admin/users/delete/}]]*/ '/admin/users/delete/';
+<!-- Modal Delete -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="deleteForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Удаление</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="deleteUserId">
+                    Удалить пользователя <b id="deleteUserName"></b>?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-rose-outline" type="button" data-bs-dismiss="modal">Отмена</button>
+                    <button class="btn btn-rose" type="submit">Удалить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-    // Edit modal
-    const editModal = document.getElementById('editUserModal');
-    editModal.addEventListener('show.bs.modal', (e) => {
-        const b = e.relatedTarget;
-        const id = b.getAttribute('data-user-id');
-        document.getElementById('editUserId').value = id;
-        document.getElementById('editUsername').value = b.getAttribute('data-user-username') || '';
-        document.getElementById('editEmail').value = b.getAttribute('data-user-email') || '';
-        document.getElementById('editAge').value = b.getAttribute('data-user-age') || '';
-        document.getElementById('editPassword').value = '';
-        document.getElementById('editUserForm').setAttribute('action', UPDATE_BASE + id);
-        document.querySelectorAll('#editUserModal .role-checkbox').forEach(cb => cb.checked = false);
-    });
-
-    // Delete modal
-    const deleteModal = document.getElementById('deleteUserModal');
-    deleteModal.addEventListener('show.bs.modal', (e) => {
-        const b = e.relatedTarget;
-        const id = b.getAttribute('data-user-id');
-        document.getElementById('deleteUserId').value = id;
-        document.getElementById('deleteUsername').textContent = b.getAttribute('data-user-username') || '';
-        document.getElementById('deleteUserForm').setAttribute('action', DELETE_BASE + id);
-    });
-</script>
+<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script defer src="/js/admin.js"></script>
 </body>
 </html>
+
+
+
+

@@ -1,5 +1,7 @@
 package ru.kata.spring.boot_security.demo.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +20,7 @@ public class UserUpdateDto { // нет бизнес-логики: только �
     @NotBlank(message = "Email cannot be empty")
     private String email;
 
+    @Min(18) @Max(150)
     private int age;
 
     private List<Long> roleIds; // null - не менять, empty - очистить

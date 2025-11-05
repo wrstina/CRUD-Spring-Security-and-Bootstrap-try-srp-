@@ -1,9 +1,6 @@
 package ru.kata.spring.boot_security.demo.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,10 +21,10 @@ public class UserCreateDto { // нет бизнес-логики: только �
     @NotBlank(message = "Email cannot be empty")
     private String email;
 
+    @Min(18) @Max(150)
     private int age;
 
-    @NotEmpty(message = "At least one role must be selected")
-    private List<Long> roleIds;
+    private List<Long> roleIds; // null/empty -> назначит ROLE_USER в сервисе по умолчанию
 
     public UserCreateDto() {}
 
