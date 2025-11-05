@@ -71,7 +71,6 @@ public class User implements UserDetails { // сущность JPA для рол
     @Override
     public boolean isEnabled() { return true; }
 
-
     @Override
     public String getUsername() { return username; }
 
@@ -86,5 +85,15 @@ public class User implements UserDetails { // сущность JPA для рол
                 ", email='" + email + '\'' +
                 ", age=" + age +
                 '}';
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User u)) return false;
+        return username != null && username.equals(u.username);
+    }
+    @Override
+    public int hashCode() {
+        return username == null ? 0 : username.hashCode();
     }
 }

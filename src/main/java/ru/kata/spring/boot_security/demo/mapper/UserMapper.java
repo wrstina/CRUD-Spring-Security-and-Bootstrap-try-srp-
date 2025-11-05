@@ -15,7 +15,7 @@ import java.util.List;
 @Component
 public class UserMapper {
 
-    // из CreateDto берём только простые поля
+    // собираем новую сущность из полей create-DTO
     public User fromCreateDto(UserCreateDto dto) {
         User u = new User();
         u.setUsername(dto.getUsername());
@@ -24,7 +24,7 @@ public class UserMapper {
         return u;
     }
 
-    // merge обновляет только простые поля
+    // обновляем у существующего User только простые поля
     public void merge(UserUpdateDto dto, User target) {
         target.setUsername(dto.getUsername());
         target.setEmail(dto.getEmail());
@@ -32,7 +32,7 @@ public class UserMapper {
         // пароль и роли не трогаем — это работа сервиса
     }
 
-    // безопасное представление для UI: пароля нет, роли — как список имён без "ROLE_"
+    // безопасное представление для UI: пароля нет, роли - список имён без "ROLE_"
     public UserViewDto toViewDto(User u) {
         List<String> roleNames = u.getRoles().stream()
                 .map(Role::getName)
